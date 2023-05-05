@@ -1,5 +1,5 @@
-# CA_final_project
-Final project for computer astrophysics 111-2
+# Fast Multipole Method
+> iFinal project for computer astrophysics 111-2
 
 ## TEST_BRANCH
 
