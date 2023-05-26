@@ -124,8 +124,7 @@ int main() {
 
 
 
-    // std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     // Evolve the stars
     for (int step=0;step<END_STEP;step++){
         double return_energy = updateStars(stars, dt);
@@ -133,10 +132,9 @@ int main() {
         fprintf( stdout, "Step %4d -> %4d: t = %13.7e -> %13.7e (dt = %13.7e) Energy = %13.7e\n", step, step+1, step*dt, (step+1)*dt, dt ,return_energy);
         DumpData( step, stars );
     }
-    // // Clean up and exit
-    // std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    // double elapsedSeconds = getExecutionTime(start, end);
-    // std::cout << "Simulation time: " << elapsedSeconds << " seconds" << std::endl;
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    double elapsedSeconds = getExecutionTime(start, end);
+    std::cout << "Simulation time: " << elapsedSeconds << " seconds" << std::endl;
 
     return 0;
 }
