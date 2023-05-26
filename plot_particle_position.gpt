@@ -1,0 +1,63 @@
+
+# -----------------------------------------------------------
+# GNUPLOT script for showing particle position
+# -----------------------------------------------------------
+
+
+reset
+
+
+# target files
+# -----------------------------------------------------------
+FILE_IN_PREFIX  = 'Data'
+FILE_OUT_PREFIX = 'Fig__XXX'
+START_ID        = 0
+END_ID          = 500
+DELTA_ID        = 1
+PAUSE           = 0.05  # <= 0.0 --> mouse
+
+
+# terminal
+# -----------------------------------------------------------
+#set term png
+
+
+# plot style
+# -----------------------------------------------------------
+#set key reverse Left spacing 2 right
+#set format x "10^{%T}"
+#set format y "10^{%T}"
+ set pointsize 0.2
+#set xyplane at 0.0
+ set xrange [-1:+1]
+ set yrange [-1:+1]
+ set zrange [-0.6:+0.6]
+
+ set size ratio -1 ; set xlabel "x"; set ylabel "y";
+
+
+# loop over all files
+# -----------------------------------------------------------
+do for [ID=START_ID:END_ID:DELTA_ID] {
+#  set the input and output filenames
+   FILE_IN = sprintf( '%s_%04d', FILE_IN_PREFIX, ID )
+
+
+#  set title
+   set title sprintf( 'DataID %04d', ID )
+   print sprintf( '   Plotting DataID %04d ...', ID )
+
+
+#  plot
+   plot FILE_IN u 1:2   w p pt 4 lc rgb "#0011FF" notitle
+
+
+   if ( PAUSE <= 0.0 ) { pause mouse } else { pause PAUSE };
+
+   ID = ID + DELTA_ID
+   if ( ID < END_ID ) { reread }
+}
+
+pause -1
+
+
