@@ -402,6 +402,59 @@ int main() {
         }
     }
     
+    vector<vector<vector<double>>> phi_NN(L, vector<vector<double>>(L));
+    
+    for (int nn = 0; nn < L; nn++) {
+        for (int oo = 0; oo < L; oo++) {
+            int n_part = static_cast<int>(boxes[nn][oo].size());
+            int temp3 = static_cast<int>(n_neigh[nn][oo].size());
+            phi_NN[nn][oo] = vector<double>(n_part, 0.0);
+            
+            for (int pp = 0; pp < temp3; pp++) {
+                int n = static_cast<int>(boxes[n_neigh[nn][oo][pp][0]][n_neigh[nn][oo][pp][1]].size());
+                vector<double> pair_dist(n, 0.0);
+                vector<double> pair_used(n, 0.0);
+                for (int qq = 0; qq < n_part; qq++) {
+                    for (int i = 0; i < n; i++) {
+                        pair_dist[i] = sqrt( pow((boxes[nn][oo][qq][0] - boxes [n_neigh[nn][oo][pp][0]] [n_neigh[nn][oo][pp][1]] [i] [0]),2) + pow((boxes[nn][oo][qq][1] - boxes [n_neigh[nn][oo][pp][0]] [n_neigh[nn][oo][pp][1]] [i] [1]),2) );
+                        pair_used[i] = boxes[n_neigh[nn][oo][pp][0]] [n_neigh[nn][oo][pp][1]] [i] [2] / pair_dist[i];
+                        if (isinf(pair_used[i])) {
+                            pair_used[i] = 0;
+                        }
+                        phi_NN[nn][oo][qq] += pair_used[i];
+                    }
+                }
+            }
+            /*
+            cout << "phi_NN {" << nn << "," << oo << "}:" << endl;
+            for (int i = 0; i < phi_NN[nn][oo].size(); i++) {
+                cout << phi_NN[nn][oo][i] << " ";
+            }
+            cout << endl;
+            */
+        }
+    }
+    
+    vector<vector<vector<double>>> phi_FMM(L, vector<vector<double>>(L));
+    
+    for (int rr = 0; rr < L; rr++) {
+        for (int ss = 0; ss < L; ss++) {
+            int num = static_cast<int>(boxes[rr][ss].size());
+            phi_FMM[rr][ss] = vector<double>(num, 0.0);
+            
+            for (int i = 0; i < num; i++) {
+                phi_FMM[rr][ss][i] = phi_INT[rr][ss][i] + phi_NN[rr][ss][i];
+            }
+            /*
+            cout << "phi_FMM {" << rr << "," << ss << "}:" << endl;
+            for (int i = 0; i < phi_FMM[rr][ss].size(); i++) {
+                cout << phi_FMM[rr][ss][i] << " ";
+            }
+            cout << endl;
+            */
+        }
+    }
+    
     return 0;
 }
 
