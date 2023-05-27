@@ -275,7 +275,132 @@ int main() {
     
     cout << " - Evaluating the potential..." << endl;
 
+    vector<vector<int>> pr(L, vector<int>(L));
+    vector<vector<int>> qr(L, vector<int>(L));
+    for (int i = 0; i < L; i++) {
+        for (int j = 0; j < L; j++) {
+            pr[i][j] = j;
+            qr[i][j] = i;
+        }
+    }
+    
+    vector<vector<vector<int>>> pairs(L, vector<vector<int>>(L));
+    for (int i = 0; i < L; i++) {
+        for (int j = 0; j < L; j++) {
+            pairs[i][j].push_back(qr[i][j]);
+            pairs[i][j].push_back(pr[i][j]);
+        }
+    }
+    
+    /*
+    for (int i = 0; i < pairs.size(); i++) {
+        for (int j = 0; j < pairs[i].size(); j++) {
+            cout << pairs[i][j] << " ";
+        }
+        cout << endl;
+    }
+    */
+    
+    vector<vector<vector<vector<vector<int>>>>> ind(L, vector<vector<vector<vector<int>>>>(L, vector<vector<vector<int>>>(pairs.size(), vector<vector<int>>(pairs.size()))));
+    vector<vector<vector<vector<int>>>> flag(L, vector<vector<vector<int>>>(L, vector<vector<int>>(pairs.size(), vector<int>(pairs.size()))));
+    vector<vector<vector<vector<int>>>> int_list(L, vector<vector<vector<int>>>(L));
+    vector<vector<vector<vector<int>>>> n_neigh(L, vector<vector<vector<int>>>(L));
 
+    for (int ii = 0; ii < L; ii++) {
+        for (int jj = 0; jj < L; jj++) {
+            for (int k = 0; k < pairs.size(); k++) {
+                for (int l = 0; l < pairs.size(); l++) {
+                    ind[ii][jj][k][l].push_back(abs(ii - pairs[k][l][0]));
+                    ind[ii][jj][k][l].push_back(abs(jj - pairs[k][l][1]));
+                    
+                    if (ind[ii][jj][k][l][0] >= 2 && ind[ii][jj][k][l][1] >= 2) {
+                        flag[ii][jj][k][l] = 2;
+                    }
+                    else if (ind[ii][jj][k][l][0] >= 2 && ind[ii][jj][k][l][1] < 2) {
+                        flag[ii][jj][k][l] = 1;
+                    }
+                    else if (ind[ii][jj][k][l][0] < 2 && ind[ii][jj][k][l][1] >= 2) {
+                        flag[ii][jj][k][l] = 1;
+                    }
+                    else {
+                        flag[ii][jj][k][l] = 0;
+                    }
+                }
+            }
+            /*
+            for (int i = 0; i < pairs.size(); i++) {
+                cout << flag[ii][jj][i] << " ";
+            }
+            cout << endl;
+            */
+            for (int k = 0; k < pairs.size(); k++) {
+                for (int l = 0; l < pairs.size(); l++) {
+                    if (flag[ii][jj][k][l] != 0) {
+                        vector<int> list = {k,l};
+                        int_list[ii][jj].push_back(list);
+                    }
+                }
+            }
+            /*
+            cout << "int_list{" << ii << "," << jj << "}: ";
+            for (int i = 0; i < int_list[ii][jj].size(); i++) {
+                vector<int> sublist = int_list[ii][jj][i];
+                for (int j = 0; j < sublist.size(); j++) {
+                    cout << sublist[j] << " ";
+                }
+                cout << endl;
+            }
+            */
+            for (int k = 0; k < pairs.size(); k++) {
+                for (int l = 0; l < pairs.size(); l++) {
+                    if (flag[ii][jj][k][l] == 0) {
+                        vector<int> neigh = {k,l};
+                        n_neigh[ii][jj].push_back(neigh);
+                    }
+                }
+            }
+            /*
+            cout << "n_neigh{" << ii << "," << jj << "}: ";
+            for (int i = 0; i < n_neigh[ii][jj].size(); i++) {
+                vector<int> sublist = n_neigh[ii][jj][i];
+                for (int j = 0; j < sublist.size(); j++) {
+                    cout << sublist[j] << " ";
+                }
+                cout << endl;
+            }
+            */
+        }
+    }
+    
+    vector<vector<vector<double>>> phi_INT(L, vector<vector<double>>(L));
+    vector<double> dist_pow2(p_vec.size());
+    
+    for (int kk = 0; kk < L; kk++) {
+        for (int ll = 0; ll < L; ll++) {
+            int n_par = static_cast<int>(boxes[kk][ll].size());
+            int temp = static_cast<int>(int_list[kk][ll].size());
+            phi_INT[kk][ll] = vector<double>(n_par, 0.0);
+            
+            for (int mm = 0; mm < temp; mm++) {
+                for (int mmm = 0; mmm < n_par; mmm++) {
+                    double dist2 = sqrt(pow(boxes[kk][ll][mmm][0] - centers [int_list[kk][ll][mm][0]] [int_list[kk][ll][mm][1]] [0], 2) + pow(boxes[kk][ll][mmm][1] - centers [int_list[kk][ll][mm][0]] [int_list[kk][ll][mm][1]] [1], 2));
+                    for (int i = 0; i < p_vec.size(); i++) {
+                        dist_pow2[i] = pow(dist2, p_vec[i]+1);
+                    }
+                    for (int i = 0; i < p_vec.size(); i++) {
+                        phi_INT[kk][ll][mmm] += Q_k [int_list[kk][ll][mm][0]] [int_list[kk][ll][mm][1]] [i] / dist_pow2[i];
+                    }
+                }
+            }
+            /*
+            cout << "phi {" << kk << "," << ll << "}:" << endl;
+            for (int i = 0; i < phi_INT[kk][ll].size(); i++) {
+                cout << phi_INT[kk][ll][i] << " ";
+            }
+            cout << endl;
+            */
+        }
+    }
     
     return 0;
 }
