@@ -211,7 +211,14 @@ int main() {
     cout << " - Input the desired multipole expansion accuracy [def=1e-12]: ";
     
     double eps;
-    cin >> eps; 
+    cin >> eps;
+    
+    if (eps <= 0) {
+        cout << endl;
+        cout << "   This is not an acceptable value!" << endl;
+        return 0;
+    }
+    
     cout << "   Epsilon = " << eps << endl;
     int p = ceil(-log2(eps));
     vector<int> p_vec(p + 1);
@@ -219,12 +226,19 @@ int main() {
         p_vec[i] = i;
     }
     
+    /*
+    for (int i = 0; i <= p; ++i) {
+        cout << p_vec[i] << " ";
+    }
+    cout << endl;
+    */
+    
     cout << endl;
     cout << " - Constructing the Laurent series at each box center..." << endl;
     
     vector<double> dist;
-    vector<vector<vector<vector<double> > > > dist_pow(L, vector<vector<vector<double> > >(L));
-    vector<vector<vector<double> > > Q_k(L, vector<vector<double> >(L));
+    vector<vector<vector<vector<double> > > >  dist_pow(L, vector<vector<vector<double> > >(L));
+    vector<vector<vector<double> > > Q_k(L, vector<vector<double> > (L));
 
     for (int gg = 0; gg < L; gg++) {
         for (int hh = 0; hh < L; hh++) {
@@ -234,12 +248,13 @@ int main() {
             for (int i = 0; i < numPoints; i++) {
                 dist.push_back(sqrt(pow(boxes[gg][hh][i][0] - centers[gg][hh][0], 2) + pow(boxes[gg][hh][i][1] - centers[gg][hh][1], 2)));
             }
-            /*
+            
+            cout << "dist {" << gg << "," << hh << "}: ";
             for (int i = 0; i < dist.size(); i++) {
                 cout << dist[i] << " ";
             }
             cout << endl;
-            */
+            
             vector<double> temp(numPowers);
             for (int i = 0; i < numPoints; i++) {
                 for (int j = 0; j < numPowers; j++){
@@ -257,26 +272,28 @@ int main() {
             }
             cout << endl;
             */
-            double Q = 0;
+            double Q;
             for (int i = 0; i < numPowers; i++) {
+                Q = 0;
                 for (int j = 0; j < numPoints; j++){
                     Q += dist_pow[gg][hh][j][i];
                 }
                 Q_k[gg][hh].push_back(Q);
             }
-            /*
+            
+            cout << "Q_k {" << gg << "," << hh << "}: ";
             for (int i = 0; i < Q_k[gg][hh].size(); i++) {
                 cout << Q_k[gg][hh][i] << " ";
             }
             cout << endl;
-            */
+            
         }
     }
     
     cout << " - Evaluating the potential..." << endl;
-
-    vector<vector<int>> pr(L, vector<int>(L));
-    vector<vector<int>> qr(L, vector<int>(L));
+    
+    vector<vector<int> >  pr(L, vector<int>(L));
+    vector<vector<int> >  qr(L, vector<int>(L));
     for (int i = 0; i < L; i++) {
         for (int j = 0; j < L; j++) {
             pr[i][j] = j;
@@ -284,7 +301,7 @@ int main() {
         }
     }
     
-    vector<vector<vector<int>>> pairs(L, vector<vector<int>>(L));
+    vector<vector<vector<int> > > pairs(L, vector<vector<int> > (L));
     for (int i = 0; i < L; i++) {
         for (int j = 0; j < L; j++) {
             pairs[i][j].push_back(qr[i][j]);
@@ -295,16 +312,20 @@ int main() {
     /*
     for (int i = 0; i < pairs.size(); i++) {
         for (int j = 0; j < pairs[i].size(); j++) {
-            cout << pairs[i][j] << " ";
+            cout << "(" << i << "," << j << "): ";
+            for (int k = 0; k < pairs[i][j].size(); k++) {
+                cout << pairs[i][j][k] << " ";
+            }
+            cout << endl;
         }
         cout << endl;
     }
     */
     
-    vector<vector<vector<vector<vector<int>>>>> ind(L, vector<vector<vector<vector<int>>>>(L, vector<vector<vector<int>>>(pairs.size(), vector<vector<int>>(pairs.size()))));
-    vector<vector<vector<vector<int>>>> flag(L, vector<vector<vector<int>>>(L, vector<vector<int>>(pairs.size(), vector<int>(pairs.size()))));
-    vector<vector<vector<vector<int>>>> int_list(L, vector<vector<vector<int>>>(L));
-    vector<vector<vector<vector<int>>>> n_neigh(L, vector<vector<vector<int>>>(L));
+    vector<vector<vector<vector<vector<int> > > > > ind(L, vector<vector<vector<vector<int> > > > (L, vector<vector<vector<int> > >(pairs.size(), vector<vector<int> > (pairs.size()))));
+    vector<vector<vector<vector<int> > > >  flag(L, vector<vector<vector<int> > >(L, vector<vector<int> > (pairs.size(), vector<int>(pairs.size()))));
+    vector<vector<vector<vector<int> > > >  int_list(L, vector<vector<vector<int> > >(L));
+    vector<vector<vector<vector<int> > > >  n_neigh(L, vector<vector<vector<int> > >(L));
 
     for (int ii = 0; ii < L; ii++) {
         for (int jj = 0; jj < L; jj++) {
@@ -328,8 +349,12 @@ int main() {
                 }
             }
             /*
+            cout << "flag {" << ii << "," << jj << "}: ";
             for (int i = 0; i < pairs.size(); i++) {
-                cout << flag[ii][jj][i] << " ";
+                for (int j = 0; j < pairs.size(); j++) {
+                    cout << flag[ii][jj][i][j] << " ";
+                }
+                cout << endl;
             }
             cout << endl;
             */
@@ -372,7 +397,7 @@ int main() {
         }
     }
     
-    vector<vector<vector<double>>> phi_INT(L, vector<vector<double>>(L));
+    vector<vector<vector<double> > > phi_INT(L, vector<vector<double> > (L));
     vector<double> dist_pow2(p_vec.size());
     
     for (int kk = 0; kk < L; kk++) {
@@ -381,28 +406,40 @@ int main() {
             int temp = static_cast<int>(int_list[kk][ll].size());
             phi_INT[kk][ll] = vector<double>(n_par, 0.0);
             
+            cout << "box {" << kk << "," << ll << "}: " << endl;
+            
             for (int mm = 0; mm < temp; mm++) {
+                
+                //cout << "int_list" << mm << endl;
+                
                 for (int mmm = 0; mmm < n_par; mmm++) {
                     double dist2 = sqrt(pow(boxes[kk][ll][mmm][0] - centers [int_list[kk][ll][mm][0]] [int_list[kk][ll][mm][1]] [0], 2) + pow(boxes[kk][ll][mmm][1] - centers [int_list[kk][ll][mm][0]] [int_list[kk][ll][mm][1]] [1], 2));
+                    
+                    //cout << "particle" << mmm << ":";
+                    //cout << dist2 << endl;
+                    
                     for (int i = 0; i < p_vec.size(); i++) {
                         dist_pow2[i] = pow(dist2, p_vec[i]+1);
-                    }
-                    for (int i = 0; i < p_vec.size(); i++) {
+                        
+                        //cout << dist_pow2[i] << " ";
+                        
                         phi_INT[kk][ll][mmm] += Q_k [int_list[kk][ll][mm][0]] [int_list[kk][ll][mm][1]] [i] / dist_pow2[i];
+                        
+                        //cout << "i=" << i << " mm=" << mm << " mmm=" << mmm << " phi_INT="<<phi_INT[kk][ll][mmm] << " dist=" << dist_pow2[i] << endl;
                     }
                 }
             }
-            /*
-            cout << "phi {" << kk << "," << ll << "}:" << endl;
+            
+            cout << "phi_INT {" << kk << "," << ll << "}:" << endl;
             for (int i = 0; i < phi_INT[kk][ll].size(); i++) {
                 cout << phi_INT[kk][ll][i] << " ";
             }
             cout << endl;
-            */
+            
         }
     }
     
-    vector<vector<vector<double>>> phi_NN(L, vector<vector<double>>(L));
+    vector<vector<vector<double> > > phi_NN(L, vector<vector<double> > (L));
     
     for (int nn = 0; nn < L; nn++) {
         for (int oo = 0; oo < L; oo++) {
@@ -435,7 +472,7 @@ int main() {
         }
     }
     
-    vector<vector<vector<double>>> phi_FMM(L, vector<vector<double>>(L));
+    vector<vector<vector<double> > > phi_FMM(L, vector<vector<double> > (L));
     
     for (int rr = 0; rr < L; rr++) {
         for (int ss = 0; ss < L; ss++) {
@@ -454,7 +491,7 @@ int main() {
             */
         }
     }
-    
+
     return 0;
 }
 
