@@ -396,7 +396,7 @@ int main() {
             */
         }
     }
-    
+    float aa;    
     vector<vector<vector<double> > > phi_INT(L, vector<vector<double> > (L));
     vector<double> dist_pow2(p_vec.size());
     
