@@ -10,15 +10,19 @@
 #include <vector>
 #include <algorithm>
 #include <cstdlib>
+<<<<<<< HEAD
 #include <random>
 #include <chrono>
 
 // include the final_project_direct_v2.cpp file
 
+=======
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
 
 using namespace std;
 
 
+<<<<<<< HEAD
 // define the constants and user specified parameters
 const int  N = 1024;                    // number of particles (**must be a multiple of BLOCK_SIZE**)
 const float BOX_SIZE = 1.0;             // simulation box size
@@ -77,16 +81,22 @@ void DumpData( const int Step, std::vector<Star>& stars)
 
 
 
+=======
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
 // Domain of the x and y grid
 const double x_min = 0;                                // Minimum x grid point.
 const double y_min = x_min;                            // Minimum y grid point.
 const double x_max = 1;                                // Maximum x grid point.
 const double y_max = x_max;                            // Maximum y grid point.
 
+<<<<<<< HEAD
 // Function to measure execution time
 double getExecutionTime(const std::chrono::steady_clock::time_point& start, const std::chrono::steady_clock::time_point& end) {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1000000000.0;
 }
+=======
+
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
 bool compareRows(const vector<double>& row1, const vector<double>& row2) {
     if (row1[3] < row2[3])
         return true;
@@ -213,15 +223,20 @@ int main() {
     int N_BOX = round(sqrt(N)); // Number of boxes, M, based on N = O(M^2)
     int L = round(sqrt(N_BOX)); // Rounding the box size to obtain the number of boxes in each direction
     N_BOX = L*L;                // Update the Number of generated boxes after confirming # boxes in each direction
+<<<<<<< HEAD
     int N_step = 3;
     float t = 0;
     float r;
 
     std::vector<Star> stars(N);
+=======
+
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
     vector<vector<double> > m(N, vector<double>(3));  // Sources matrix, m = [x, y, mass].
     vector<double> x(N);                             // Sources x-position vector.
     vector<double> y(N);                             // Sources y-position vector.
 
+<<<<<<< HEAD
     vector<double> xx(N);
     vector<double> yy(N);
     vector<double> mass(N);
@@ -230,6 +245,8 @@ int main() {
     vector<double> vx(N);
     vector<double> vy(N);
 
+=======
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
     Initialize(N,m,x,y);
 
     // Check the initialization
@@ -243,15 +260,17 @@ int main() {
     */
     
     // Mesh(boxes) generation
-    // cout << endl;
-    // cout << "Generating the mesh..." << endl;
-    // cout << "# of generated boxes, based on N = O(M^2): " << N_BOX << endl;
-    // cout << endl;
+    cout << endl;
+    cout << "Generating the mesh..." << endl;
+    cout << "# of generated boxes, based on N = O(M^2): " << N_BOX << endl;
+    cout << endl;
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
 
     vector<double> x_edg(round(L) + 1);
     vector<double> y_edg(round(L) + 1);
     vector<vector<vector<double> > > centers(L, vector<vector<double> >(L));
     centers = GenerateBoxes(x_edg,y_edg,N_BOX);
+<<<<<<< HEAD
     
 
 
@@ -281,6 +300,43 @@ int main() {
     
     double eps = 1e-3;
 
+=======
+    vector<vector<vector<vector<double> > > > boxes(L, vector<vector<vector<double> > >(L));
+    boxes = SortParticlestoBox(N,x_edg,y_edg,m,x,y,N_BOX);
+
+    // Check for the center coordinates
+    /*
+    for (int cc = 0; cc < L; cc++) {
+        for (int dd = 0; dd < L; dd++) {
+            cout << "(" << centers[cc][dd][0] << ", " << centers[cc][dd][1] << ") ";
+        }
+        cout << endl;
+    }
+    */
+
+    // Final checking for the particle and the boxes -> x,y,mass,#box_x,#box_y
+    /*
+    for (int ee = 0; ee < L; ee++) {
+        for (int ff = 0; ff < L; ff++) {
+            cout << "boxes[" << ee << "][" << ff << "](" << centers[ee][ff][0] << ","<< centers[ee][ff][1] << "):" << endl;
+            for (int i = 0; i < boxes[ee][ff].size(); i++) {
+                for (int j = 0; j < boxes[ee][ff][i].size(); j++) {
+                    cout << boxes[ee][ff][i][j] << " ";
+                }
+                cout << endl;
+            }
+            cout << endl;
+        }
+    }
+    */
+    
+    cout << endl;
+    cout << "Using FMM to compute all pairwise interactions..." << endl;
+    cout << " - Input the desired multipole expansion accuracy [def=1e-12]: ";
+    
+    double eps;
+    cin >> eps;
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
     
     if (eps <= 0) {
         cout << endl;
@@ -288,16 +344,32 @@ int main() {
         return 0;
     }
     
+<<<<<<< HEAD
     // cout << "   Epsilon = " << eps << endl;
+=======
+    cout << "   Epsilon = " << eps << endl;
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
     int p = ceil(-log2(eps));
     vector<int> p_vec(p + 1);
     for (int i = 0; i <= p; ++i) {
         p_vec[i] = i;
     }
     
+<<<<<<< HEAD
     
     // cout << endl;
     // cout << " - Constructing the Laurent series at each box center..." << endl;
+=======
+    /*
+    for (int i = 0; i <= p; ++i) {
+        cout << p_vec[i] << " ";
+    }
+    cout << endl;
+    */
+    
+    cout << endl;
+    cout << " - Constructing the Laurent series at each box center..." << endl;
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
     
     vector<double> dist;
     vector<vector<vector<vector<double> > > >  dist_pow(L, vector<vector<vector<double> > >(L));
@@ -311,7 +383,17 @@ int main() {
             for (int i = 0; i < numPoints; i++) {
                 dist.push_back(sqrt(pow(boxes[gg][hh][i][0] - centers[gg][hh][0], 2) + pow(boxes[gg][hh][i][1] - centers[gg][hh][1], 2)));
             }
+<<<<<<< HEAD
            
+=======
+            /*
+            cout << "dist {" << gg << "," << hh << "}: ";
+            for (int i = 0; i < dist.size(); i++) {
+                cout << dist[i] << " ";
+            }
+            cout << endl;
+            */
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
             vector<double> temp(numPowers);
             for (int i = 0; i < numPoints; i++) {
                 for (int j = 0; j < numPowers; j++){
@@ -319,7 +401,20 @@ int main() {
                 }
                 dist_pow[gg][hh].push_back(temp);
             }
+<<<<<<< HEAD
            
+=======
+            /*
+            cout << "dist_pow[" << gg << "][" << hh << "]: ";
+            for (int i = 0; i < numPoints; i++) {
+                for (int j = 0; j < numPowers; j++) {
+                    cout << dist_pow[gg][hh][i][j] << " ";
+                }
+                cout << endl;
+            }
+            cout << endl;
+            */
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
             double Q;
             for (int i = 0; i < numPowers; i++) {
                 Q = 0;
@@ -328,11 +423,25 @@ int main() {
                 }
                 Q_k[gg][hh].push_back(Q);
             }
+<<<<<<< HEAD
             
         }
     }
     
     // cout << " - Evaluating the potential..." << endl;
+=======
+            /*
+            cout << "Q_k {" << gg << "," << hh << "}: ";
+            for (int i = 0; i < Q_k[gg][hh].size(); i++) {
+                cout << Q_k[gg][hh][i] << " ";
+            }
+            cout << endl;
+            */
+        }
+    }
+    
+    cout << " - Evaluating the potential..." << endl;
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
     
     vector<vector<int> >  pr(L, vector<int>(L));
     vector<vector<int> >  qr(L, vector<int>(L));
@@ -351,7 +460,22 @@ int main() {
         }
     }
     
+<<<<<<< HEAD
     
+=======
+    /*
+    for (int i = 0; i < pairs.size(); i++) {
+        for (int j = 0; j < pairs[i].size(); j++) {
+            cout << "(" << i << "," << j << "): ";
+            for (int k = 0; k < pairs[i][j].size(); k++) {
+                cout << pairs[i][j][k] << " ";
+            }
+            cout << endl;
+        }
+        cout << endl;
+    }
+    */
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
     
     vector<vector<vector<vector<vector<int> > > > > ind(L, vector<vector<vector<vector<int> > > > (L, vector<vector<vector<int> > >(pairs.size(), vector<vector<int> > (pairs.size()))));
     vector<vector<vector<vector<int> > > >  flag(L, vector<vector<vector<int> > >(L, vector<vector<int> > (pairs.size(), vector<int>(pairs.size()))));
@@ -379,7 +503,20 @@ int main() {
                     }
                 }
             }
+<<<<<<< HEAD
             
+=======
+            /*
+            cout << "flag {" << ii << "," << jj << "}: ";
+            for (int i = 0; i < pairs.size(); i++) {
+                for (int j = 0; j < pairs.size(); j++) {
+                    cout << flag[ii][jj][i][j] << " ";
+                }
+                cout << endl;
+            }
+            cout << endl;
+            */
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
             for (int k = 0; k < pairs.size(); k++) {
                 for (int l = 0; l < pairs.size(); l++) {
                     if (flag[ii][jj][k][l] != 0) {
@@ -388,7 +525,20 @@ int main() {
                     }
                 }
             }
+<<<<<<< HEAD
             
+=======
+            /*
+            cout << "int_list{" << ii << "," << jj << "}: ";
+            for (int i = 0; i < int_list[ii][jj].size(); i++) {
+                vector<int> sublist = int_list[ii][jj][i];
+                for (int j = 0; j < sublist.size(); j++) {
+                    cout << sublist[j] << " ";
+                }
+                cout << endl;
+            }
+            */
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
             for (int k = 0; k < pairs.size(); k++) {
                 for (int l = 0; l < pairs.size(); l++) {
                     if (flag[ii][jj][k][l] == 0) {
@@ -397,7 +547,20 @@ int main() {
                     }
                 }
             }
+<<<<<<< HEAD
             
+=======
+            /*
+            cout << "n_neigh{" << ii << "," << jj << "}: ";
+            for (int i = 0; i < n_neigh[ii][jj].size(); i++) {
+                vector<int> sublist = n_neigh[ii][jj][i];
+                for (int j = 0; j < sublist.size(); j++) {
+                    cout << sublist[j] << " ";
+                }
+                cout << endl;
+            }
+            */
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
         }
     }
     vector<vector<vector<double> > > phi_INT(L, vector<vector<double> > (L));
@@ -571,7 +734,11 @@ int main() {
                 field_FMM_x[rr][ss][i] = field_INT_x[rr][ss][i] + field_NN_x[rr][ss][i];
                 field_FMM_y[rr][ss][i] = field_INT_y[rr][ss][i] + field_NN_y[rr][ss][i];
             }
+<<<<<<< HEAD
             /*
+=======
+            
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
             cout << "phi_FMM {" << rr << "," << ss << "}:" << endl;
             for (int i = 0; i < phi_FMM[rr][ss].size(); i++) {
                 cout << phi_FMM[rr][ss][i] << " ";
@@ -587,6 +754,7 @@ int main() {
                 cout << field_FMM_y[rr][ss][i] << " ";
             }
             cout << endl;
+<<<<<<< HEAD
             */
         }
     }
@@ -636,5 +804,11 @@ int main() {
     std::cout << "Simulation time: " << elapsedSeconds << " seconds" << std::endl;
 
 
+=======
+            
+        }
+    }
+
+>>>>>>> 85fce06949b7669a375fa766b40c69a9248c3637
     return 0;
 }
