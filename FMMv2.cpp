@@ -3,8 +3,15 @@
 #include <complex>
 #include <random>
 #include <cmath>
+#include <chrono>
+// #include <omp.h>
 
 using namespace std;
+
+
+double getExecutionTime(const std::chrono::steady_clock::time_point& start, const std::chrono::steady_clock::time_point& end) {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1000000000.0;
+}
 
 int getparentID(int l, int ibox) {
     if (ibox > pow(4, l)) {
@@ -130,24 +137,28 @@ std::vector<int> getinteractionlist(int l, int ibox) {
 
 
 int main() {
+    // omp_set_num_threads(1);
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     // Initialize
-    int N = 1e2;  // number of source/target points
+    int N = 160000;  // number of source/target points
     std::vector<std::complex<double> > z(N);
     // Generating random complex numbers for z
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dis(0.0, 1.0);
 
+    // # pragma omp parallel for
     for (int i = 0; i < N; ++i) {
         double realPart = dis(gen);
         double imagPart = dis(gen);
         z[i] = std::complex<double>(realPart, imagPart);
     }
+
     std::vector<double> m(N, 1.0);  // strength of charges
     // for (int i = 0; i < N; ++i) {
     //     cout << m[i] << endl;
     // }
-    int p = 5;  // multipole terms
+    int p = 3;  // multipole terms
     int n = 3;  // level of refinement
 
     bool VAL = true;  // validation flag
@@ -230,12 +241,14 @@ int main() {
     // }
 
     // Step 1: S2M
-    std::cout << "S2M" << std::endl;
+    std::cout << "1.S2M" << std::endl;
     for (int level_1=0;level_1<4;level_1++){
         double boxsize = 0.25;
         std::complex<double> zC = Boxes[level_1].center;
         std::vector<int> idx;
         idx.clear();
+
+        // # pragma omp parallel for
         for (int i = 0; i < N; ++i) {
         // cout << std::abs(std::imag(z[i] - zC)) << endl;
         if (std::abs(std::real(z[i] - zC)) < boxsize && std::abs(std::imag(z[i] - zC)) < boxsize){
@@ -343,26 +356,26 @@ int main() {
 
 
     }
-    cout << "A" << endl;
-    for (int i=0 ; i<Boxes.size() ; i++)
-    {
-        for (int j=0 ; j<Boxes[i].ilist.size() ; j++)
-        {
-            std::cout << Boxes[i].ilist[j] << " ";
-        }
-        std::cout << std::endl;
-        // for (int j=0 ; j<Boxes[i].particlelist.size() ; j++)
-        // {
-        //     std::cout << Boxes[i].particlelist[j] << " ";
-        // }
-        // std::cout << std::endl;
-    }
+    // cout << "A" << endl;
+    // for (int i=0 ; i<Boxes.size() ; i++)
+    // {
+    //     for (int j=0 ; j<Boxes[i].ilist.size() ; j++)
+    //     {
+    //         std::cout << Boxes[i].ilist[j] << " ";
+    //     }
+    //     std::cout << std::endl;
+    //     // for (int j=0 ; j<Boxes[i].particlelist.size() ; j++)
+    //     // {
+    //     //     std::cout << Boxes[i].particlelist[j] << " ";
+    //     // }
+    //     // std::cout << std::endl;
+    // }
 
 
 
     // Step 2 : M2M
-    std::cout << "M2M" << std::endl;
-    cout<< "n= "<< n <<endl;
+    std::cout << "2.M2M" << std::endl;
+    // cout<< "n= "<< n <<endl;
     for (int level=n-1;level>=1;level--){
         
         for (int ibox = 1; ibox<=pow(4,level);++ibox){
@@ -379,7 +392,7 @@ int main() {
             ibox_globalll += ibox;
             // cout << "ibox_globalll "<< ibox_globalll << endl;
             ibox_globalll -= 1;
-            cout << "ibox_globalll "<< ibox_globalll << endl;
+            // cout << "ibox_globalll "<< ibox_globalll << endl;
             // MOM
             std::complex<double> zM = Boxes[ibox_globalll].center;
             vector<int>  cID = getchildrenID(level,ibox);
@@ -396,7 +409,7 @@ int main() {
             
             
 
-            cout << "cID= " << cID[0] << " " << cID[1] << " " << cID[2] << " " << cID[3] << endl;
+            // cout << "cID= " << cID[0] << " " << cID[1] << " " << cID[2] << " " << cID[3] << endl;
             for (int ichild=1;ichild<=4;++ichild){
 
                 // cout << cID[ichild-1]-1 << " a " << Boxes[cID[ichild-1]-1].a[0] << endl;
@@ -404,7 +417,7 @@ int main() {
                 // cout << ibox_globalll << " b " << Boxes[ibox_globalll].b[0] << endl;
                 std::complex<double> zC = Boxes[cID[ichild-1]-1].center;
                 
-                cout<< "onnnn"<<endl;
+                // cout<< "onnnn"<<endl;
                 for (int expan=1;expan<=p;++expan){
 
                     Boxes[ibox_globalll].b[expan] -= Boxes[cID[ichild-1]-1].a[0]*pow((zC-zM),expan)/static_cast<double>(expan);
@@ -424,19 +437,19 @@ int main() {
         }
     }
 
-    for (int i=0 ; i<Boxes.size() ; i++)
-    {
-        for (int j=0 ; j<Boxes[i].b.size() ; j++)
-        {
-            std::cout << Boxes[i].b[j] << " ";
-        }
-        std::cout << std::endl;
-        // for (int j=0 ; j<Boxes[i].particlelist.size() ; j++)
-        // {
-        //     std::cout << Boxes[i].particlelist[j] << " ";
-        // }
-        // std::cout << std::endl;
-    }
+    // for (int i=0 ; i<Boxes.size() ; i++)
+    // {
+    //     for (int j=0 ; j<Boxes[i].b.size() ; j++)
+    //     {
+    //         std::cout << Boxes[i].b[j] << " ";
+    //     }
+    //     std::cout << std::endl;
+    //     // for (int j=0 ; j<Boxes[i].particlelist.size() ; j++)
+    //     // {
+    //     //     std::cout << Boxes[i].particlelist[j] << " ";
+    //     // }
+    //     // std::cout << std::endl;
+    // }
 
 
 
@@ -460,7 +473,7 @@ int main() {
         Boxes[ibox_globalll].c = Boxes[ibox_globalll].d;
         
         std::vector<int> iboxlist = Boxes[ibox_globalll].ilist;
-        cout << "ibox_globalll " << ibox_globalll << " iboxlist.size() " << iboxlist.size() << endl;
+        // cout << "ibox_globalll " << ibox_globalll << " iboxlist.size() " << iboxlist.size() << endl;
         if (!iboxlist.empty()){
             
             std::complex<double> zL = Boxes[ibox_globalll].center;
@@ -512,7 +525,7 @@ int main() {
 
 
 
-        cout << "innn" << endl;
+        
         
         
         for (int ibox = 1;ibox<=pow(4,l);ibox++){
@@ -523,27 +536,37 @@ int main() {
             }
             
             ibox_globallll += ibox;
+            
             ibox_globallll -= 1; 
-
+            // cout << "idx_globallll " << ibox_globallll << endl;
+            // cout << "innn" << endl;
+            // cout << "idx_globallll " << ibox_globallll << endl;
             std::complex<double> zL = Boxes[ibox_globallll].center;
             vector<int>  cID = getchildrenID(l,ibox);
             // cout << "cIDb= " << cID[0] << " " << cID[1] << " " << cID[2] << " " << cID[3] << endl;
             int sum2 = 0;
-            for (int t=1;t<=l;t++){
+            for (int t=1;t<l;t++){
                 sum2 += pow(4,t);
+            }
+
+            int sum3 = 0;
+            for (int t=1;t<l+1;++t){
+                sum3 += pow(4,t);
             }
             //  cout << "sum2 " << sum2 << endl;
             for (int i=0;i<cID.size();i++){
-                cID[i] += sum2;
-                // cID[i] -= 1;
+                cID[i] += sum3;
+                cID[i] -= 1;
             }
-
+            // cout << "cIDa= " << cID[0] << " " << cID[1] << " " << cID[2] << " " << cID[3] << endl;
             for (int i = 0;i<4;i++){
                 int ibox_global_ci = cID[i];
-                std::complex<double> zT = Boxes[ibox_global_ci-1].center;
-                for (int ll=0;ll<=p;ll++){
-                    for(int k=ll;k<=p;k++){
-                        Boxes[ibox+ibox_global_ci-1].d[ll] += Boxes[ibox_globallll].c[k]*static_cast<double>(nCk[k][ll])*pow(zT-zL,k-ll);
+                
+                std::complex<double> zT = Boxes[ibox_global_ci].center;
+                // cout << "ibox_global_ci" << ibox_global_ci << endl;
+                for (int ll=0;ll<p+1;ll++){
+                    for(int k=ll;k<p+1;k++){
+                        Boxes[ibox_global_ci].d[ll] += Boxes[ibox_globallll].c[k]*static_cast<double>(nCk[k][ll])*pow(zT-zL,k-ll);
                     }
                 }
 
@@ -555,26 +578,258 @@ int main() {
 
     }
 
+    
+    // step4:compute interactions at finesest level
+    cout << "step4" << endl;
+    for (int ibox = 1;ibox<=pow(4,n);ibox++){
+            // calculate global ibox
+            int ibox_globalll = 0;
+            
+            for (int t=1;t<n;t++){
+                ibox_globalll += pow(4,t);
+               
+            }
+            
+            ibox_globalll += ibox;
+            ibox_globalll -= 1;
+        // cout << "ibox_globalll " << ibox_globalll << endl;
+        Boxes[ibox_globalll].c = Boxes[ibox_globalll].d;
         
+        std::vector<int> iboxlist = Boxes[ibox_globalll].ilist;
+        // cout << "ibox_globalll " << ibox_globalll << " iboxlist.size() " << iboxlist.size() << endl;
+        if (!iboxlist.empty()){
+            
+            std::complex<double> zL = Boxes[ibox_globalll].center;
+            for (int i=0;i<iboxlist.size();i++){
+
+           
+                int ibox_global_m = 0;
+                for (int t=1;t<n;t++){
+             
+                    ibox_global_m += pow(4,t);
+                }
 
 
+                ibox_global_m = ibox_global_m + iboxlist[i]-1;
+                // cout << "innn" << endl;
+                std::complex<double> zM = Boxes[ibox_global_m].center;
+                // cout << "zL " << zL << " zM " << zM << endl;
+                // for (int i=0;i<iboxlist.size();i++){
+                //     cout <<  iboxlist[i] << " ";
+                // }
+                // cout << endl;
+                // cout << "ibox_globallll " << ibox_globalll << endl;
+                // cout << "ibox_global_m " << ibox_global_m << endl;
+                Boxes[ibox_globalll].c[0] += Boxes[ibox_global_m].a[0]*log(zL-zM);
+                // cout << "onnn" << endl; 
+                for (int expan=1;expan<=p;++expan){
+                    Boxes[ibox_globalll].c[0] += Boxes[ibox_global_m].a[expan]/pow((zL-zM),expan)*pow(-1,expan);
+                }
+                // cout << "innn" << endl;
+                std::vector<std::complex<double> > pref(p);
+                
+                for (int kk = 1; kk <= p; kk++) {
+                pref[kk-1] = Boxes[ibox_global_m].a[kk] / pow((zM - zL), kk) * pow(-1, kk);
+                for (int ll = 1; ll <= p; ll++) {
+                    std::complex<double> sum = (0.0,0.0);
+                    for (int pref_long=0;pref_long<pref.size();pref_long++){
+                        sum = pref[pref_long]*static_cast<double>(nCk[pref_long+ll-1][ll])/pow(zM-zL,ll);
+                    }
 
-
-
-
-        for (int i=0 ; i<Boxes.size() ; i++)
-    {
-        for (int j=0 ; j<Boxes[i].c.size() ; j++)
-        {
-            std::cout << Boxes[i].c[j] << " ";
+                    Boxes[ibox_globalll].c[ll] +=  sum  - Boxes[ibox_global_m].a[0]/ static_cast<double>(ll) / pow((zM - zL), ll);
+                }            
+                }
+                // cout << "onnn" << endl;
+                
+            }
         }
-        std::cout << std::endl;
-        // for (int j=0 ; j<Boxes[i].particlelist.size() ; j++)
-        // {
-        //     std::cout << Boxes[i].particlelist[j] << " ";
-        // }
-        // std::cout << std::endl;
+        }
+
+
+
+    // Step 5: Evaluate local expansions at particles positions
+    cout << "step5:Evaluate local expansions at particles positions" << endl;
+    std::vector<std::complex<double> > Phi(N);
+
+    for (int ibox=1;ibox<=pow(4,n);ibox++){
+        
+        int ibox_globalll = 0;
+            
+            for (int t=1;t<n;t++){
+                ibox_globalll += pow(4,t);
+               
+            }
+            
+        ibox_globalll += ibox;
+        ibox_globalll -= 1;
+
+        std::complex<double> zC = Boxes[ibox_globalll].center;
+        for (int i : Boxes[ibox_globalll].particlelist){
+             for (int ll = 0; ll <= p; ll++) {
+                Phi[i]+=Boxes[ibox_globalll].c[ll]*pow((z[i-1]-zC),ll);
+             }
+        }
+    
     }
+
+    // for (int i=0;i<Phi.size();i++){
+    //     cout << "Phi" << "[" << i << "] " << Phi[i] << endl;
+    // }
+
+
+
+    // Step 6: Evaluate potential due to nearest neighbors directly
+    cout << "step6:Evaluate potential due to nearest neighbors directly" << endl;
+
+    std::vector<std::complex<double> > Phi_direct0(N);
+    std::vector<std::complex<double> > Phi_direct1(N);
+
+    for (int ibox=1;ibox<=pow(4,n);ibox++){
+        
+        int ibox_globalll = 0;
+            
+            for (int t=1;t<n;t++){
+                ibox_globalll += pow(4,t);
+               
+            }
+            
+        ibox_globalll += ibox;
+        ibox_globalll -= 1;
+
+        vector<int> neilist = Boxes[ibox_globalll].nlist;
+        std::vector<int> particles_inbox = Boxes[ibox_globalll].particlelist;
+        std::vector<int> particles_neighbors;
+        particles_neighbors.clear();
+        for (int i:neilist){
+            int ibox_global_n = 0;
+            
+            for (int t=1;t<n;t++){
+                ibox_global_n += pow(4,t);
+            }
+            
+            ibox_global_n += i;
+            ibox_global_n -= 1;
+            particles_neighbors.insert(particles_neighbors.end(), Boxes[ibox_global_n].particlelist.begin(), Boxes[ibox_global_n].particlelist.end());
+        }
+        
+        // cout << "inn" << endl;
+        // cout << "particles_inbox.size() " << particles_inbox.size() << endl;
+        std::vector<std::vector<std::complex<double> > > matrix(particles_inbox.size(), std::vector<std::complex<double> >(particles_inbox.size()));
+        for (int i = 0;i<particles_inbox.size();i++){
+            for (int j = 0;j<particles_inbox.size();j++){
+
+                matrix[i][j] = log(z[particles_inbox[j]-1]-z[particles_inbox[i]-1]);
+                if (i==j){
+                    matrix[i][j] = 0;
+                }
+            }
+        }
+        // cout << "nnnn" << endl;
+
+        
+        std::vector<std::complex<double> >sum(particles_inbox.size());
+        for (size_t i = 0; i < matrix.size(); i++) {
+        for (size_t j = 0; j < matrix[i].size(); j++) {
+            sum[j] += m[particles_inbox[j]-1] * matrix[i][j];
+            if (j==particles_inbox.size()-1){
+                Phi_direct0[particles_inbox[i]-1] = sum[j];
+            }
+            }
+        }
+        
+        std::vector<std::vector<std::complex<double> > > matrix2(particles_neighbors.size(), std::vector<std::complex<double> >(particles_inbox.size()));
+        for (int i = 0;i<particles_neighbors.size();i++){
+            for (int j = 0;j<particles_inbox.size();j++){
+                matrix2[i][j] = log(z[particles_inbox[j]-1]-z[particles_neighbors[i]-1]);
+            }
+        }
+        
+        std::vector<std::complex<double> >sum2(particles_inbox.size());
+
+
+        // cout << "matrix2.size() " << matrix2.size() << " particles_neghbors.size() " << particles_neighbors.size()<< endl;
+        // cout << "matrix2[0].size() " << matrix2[0].size() << " particles_inbox.size() " << particles_inbox.size()<< endl;
+        for (size_t i = 0; i < matrix2.size(); i++) {
+            
+        for (size_t j = 0; j < matrix2[i].size(); j++) {
+            
+            sum2[j] += m[particles_neighbors[j]-1] * matrix2[i][j];
+            
+
+            if (j==particles_inbox.size()-1){
+                // cout << "i="<< i << " j=" << j << " particles_inbox.size()-1= " << particles_inbox.size()-1 << endl;
+                // cout << "sum2 " << sum2[j] << endl;
+                // cout << "particles_inbox[j]-1 = " << particles_inbox[j]-1 << endl;
+                
+                // for (int i=0;i<Phi_direct1.size();i++){
+                //     cout << "Phi_direct1" << "[" << i << "] " << Phi_direct1[i] << endl;
+                // }
+                // cout << "Phi_direct1[particles_inbox[i]-1] " << Phi_direct1[particles_inbox[j]-1] << endl;
+                Phi_direct1[particles_inbox[j]-1] += sum2[j];
+                sum2[j]=0;
+                }
+            // cout << "i " << i << " j " << j << " end-------- " << endl;
+            }
+            
+        }
+        
+    }
+    std::vector<std::complex<double> > Phi_direct(N);
+    // # pragma omp parallel for
+    for (int i=0;i<N;i++){
+        Phi_direct[i] = Phi_direct0[i] + Phi_direct1[i];
+    }
+
+
+    // Step7:Evaluate Combine direct and far-field terms together
+
+    std::vector<double> Potential(N);
+    // # pragma omp parallel for
+    for (int i=0;i<N;i++){
+        Potential[i] = real(Phi[i]) + real(Phi_direct[i]);
+    }
+
+
+
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    double elapsedSeconds = getExecutionTime(start, end);
+    std::cout << "Simulation time: " << elapsedSeconds << " seconds" << std::endl;
+
+
+    // Step8 : Calculate directly
+    std::chrono::steady_clock::time_point start2 = std::chrono::steady_clock::now();
+    std::vector<std::complex<double> > Phi_direct_n_body(N);
+    for (int i=0;i<N;i++){
+        for (int j=0;j<N;j++){
+            if (i!=j){
+                Phi_direct_n_body[i] += m[j]*log(z[i]-z[j]);
+            }
+        }
+    }
+    std::chrono::steady_clock::time_point end2 = std::chrono::steady_clock::now();
+    double elapsedSeconds_Nbody = getExecutionTime(start2, end2);
+    std::cout << "Simulation time(Direct N-Body): " << elapsedSeconds_Nbody << " seconds" << std::endl;
+
+
+
+
+    // for (int i=0;i<N;i++){
+    //     std::cout << "Phi_direct_n_body[" << i << "] = " << real(Phi_direct_n_body[i]) << "\tPotential[" << i << "] = " << Potential[i] << std::endl;
+    // }
+
+    // //     for (int i=0 ; i<Boxes.size() ; i++)
+    // // {
+    // //     for (int j=0 ; j<Boxes[i].d.size() ; j++)
+    // //     {
+    // //         std::cout << Boxes[i].d[j] << " ";
+    // //     }
+    // //     std::cout << std::endl;
+    // //     // for (int j=0 ; j<Boxes[i].particlelist.size() ; j++)
+    // //     // {
+    // //     //     std::cout << Boxes[i].particlelist[j] << " ";
+    // //     // }
+    // //     // std::cout << std::endl;
+    // // }
 
     return 0;
 }
