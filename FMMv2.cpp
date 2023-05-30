@@ -4,6 +4,7 @@
 #include <random>
 #include <cmath>
 #include <chrono>
+#include <algorithm>
 // #include <omp.h>
 
 using namespace std;
@@ -128,10 +129,20 @@ std::vector<int> getinteractionlist(int l, int ibox) {
         ilist.insert(ilist.end(), cID.begin(), cID.end());
     }
     std::vector<int> nlist = getneighbors(l, ibox);
-    for (int i = 0; i < nlist.size(); ++i) {
-        ilist.erase(std::remove(ilist.begin(), ilist.end(), nlist[i]), ilist.end());
-    }
+    // for (int i = 0; i < nlist.size(); ++i) {
+    //     ilist.erase(std::remove(ilist.begin(), ilist.end(), nlist[i]), ilist.end());
+    // }
     // showlist(l, ibox, ilist);
+    std::vector<int> temp;
+    temp.reserve(ilist.size());
+    for (const auto& element : ilist) {
+        auto it = std::find(nlist.begin(), nlist.end(), element);
+        if (it == nlist.end()) {
+            temp.push_back(element);
+        }
+    }
+
+    ilist = std::move(temp);  // Replace ilist with the updated vector
     return ilist;
 }
 
