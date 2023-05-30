@@ -1,6 +1,10 @@
 # Fast Multipole Method
 > Final project for computer astrophysics 111-2
 
+- B09202002 物理三 張亦杰
+- B09202026 物理三 劉柏賢
+- R11222013 物理所碩一 王亞琪
+
 ## Final doc (100% include bugs)
 - Only Direct N-body : ```final_project_direct_v2.cpp```
 - Plotting script (Borrowed from professor lec09 and modified a bit) : ```plot_particle_position.gpt```
