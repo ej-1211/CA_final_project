@@ -10,7 +10,7 @@
 - Plotting script (Borrowed from professor lec09 and modified a bit) : ```plot_particle_position.gpt```
 - Code A (Reproduce Theory): ```FMMv22.cpp```
 - Code B (Simple 1 level algorithm + Evolve):```FMM_prime2.cpp```
-- Code B (with openmp parallel):``````
+- Code B (with openmp parallel):```FMM_prime_parallel_present.cpp```
 - data for analysis : ```data.xlsx```
 - Google Slide : [https://docs.google.com/presentation/d/10MDhIPmrp5-McWSwJ9KDgeU70gZkccCea9jQb732dtI/edit?usp=sharing](https://docs.google.com/presentation/d/10MDhIPmrp5-McWSwJ9KDgeU70gZkccCea9jQb732dtI/edit?usp=sharing)
 
